@@ -1,0 +1,199 @@
+---
+title: "Quickstart"
+description: "From an empty account to a station taking remote commands"
+---
+
+This walks the whole path end to end: create an account, open an organization,
+register a station, let the charger connect, and then drive it remotely. Every
+call below runs against production.
+
+```
+https://api.miav.com.br
+```
+
+<Note>
+  The API authenticates with a session cookie, so the examples use `curl -c` to
+  save cookies and `-b` to send them back. A browser client gets this for free.
+</Note>
+
+## 1. Create an account
+
+```bash
+curl -X POST https://api.miav.com.br/auth/sign-up/email \
+  -H 'Content-Type: application/json' \
+  -c cookies.txt \
+  -d '{
+    "name": "Ada Lovelace",
+    "email": "ada@example.com",
+    "password": "a-long-password"
+  }'
+```
+
+Already have one? Sign in instead and you get the same session cookie:
+
+```bash
+curl -X POST https://api.miav.com.br/auth/sign-in/email \
+  -H 'Content-Type: application/json' \
+  -c cookies.txt \
+  -d '{ "email": "ada@example.com", "password": "a-long-password" }'
+```
+
+Confirm the session is live at any point:
+
+```bash
+curl https://api.miav.com.br/auth/get-session -b cookies.txt
+```
+
+## 2. Open an organization
+
+Everything else in the API is scoped to an organization, so this comes first.
+Each user owns at most one.
+
+```bash
+curl -X POST https://api.miav.com.br/organizations \
+  -H 'Content-Type: application/json' \
+  -b cookies.txt \
+  -d '{
+    "name": "Ada Charging",
+    "document": "12345678000199",
+    "contact": "Ada Lovelace",
+    "contactPhone": "+5511999999999",
+    "email": "ops@example.com",
+    "phone": "+551133333333",
+    "zip": "01310100",
+    "address": "Av. Paulista, 1000",
+    "city": "São Paulo",
+    "state": "SP"
+  }'
+```
+
+All of those fields are required, and `state` is a two-letter Brazilian state
+code.
+
+<Warning>
+  The management endpoints require the `merchant` role. If a call returns
+  `403 FORBIDDEN` while your session is valid, that is what is missing, and an
+  administrator has to grant it.
+</Warning>
+
+## 3. Register a station
+
+The `identifier` is the only required field, and it matters more than it looks:
+it is the identity the charger will use to connect over OCPP, so it has to match
+what the hardware is configured with.
+
+```bash
+curl -X POST https://api.miav.com.br/charging-stations \
+  -H 'Content-Type: application/json' \
+  -b cookies.txt \
+  -d '{
+    "identifier": "STATION-001",
+    "name": "Parking level 1",
+    "password": "station-secret",
+    "latitude": -23.561,
+    "longitude": -46.656
+  }'
+```
+
+The response includes the station `id`, which the command endpoints take in
+their path.
+
+<Note>
+  `password` is optional but recommended. Set it and the station must present it
+  as HTTP Basic auth to connect. Leave it out and any client claiming that
+  identifier is accepted. Latitude and longitude must be sent together or not at
+  all.
+</Note>
+
+## 4. Point the charger at the CSMS
+
+This step happens on the hardware, in its own configuration screen, not through
+this API. Set the central system URL to:
+
+```
+wss://api.miav.com.br/ocpp/STATION-001
+```
+
+The last path segment is the station identifier from step 3. The charger must
+offer `ocpp1.6` or `ocpp2.0.1` as the WebSocket subprotocol, and if you set a
+password, it authenticates with HTTP Basic where the **username is the station
+identifier** and the password is the secret you chose.
+
+Verify it arrived by searching your stations and reading the connection flag:
+
+```bash
+curl -X POST https://api.miav.com.br/charging-stations/search \
+  -H 'Content-Type: application/json' \
+  -b cookies.txt \
+  -d '{ "keyword": "STATION-001" }'
+```
+
+<Accordion title="The station is not showing as connected">
+  Three things account for almost every case. The identifier in the URL must
+  match the registered one exactly, including case. The subprotocol must be
+  offered by the charger, since a connection without one is rejected during the
+  handshake. And if the station has a password, the Basic auth username must be
+  the identifier itself, not an account name.
+</Accordion>
+
+## 5. Drive it remotely
+
+With the station online, the command endpoints translate straight into OCPP
+messages. Start a charge:
+
+```bash
+curl -X POST https://api.miav.com.br/charging-stations/1/commands/start-charge \
+  -H 'Content-Type: application/json' \
+  -b cookies.txt \
+  -d '{ "idToken": "ABC123", "evseId": 1 }'
+```
+
+The call waits for the station's answer and returns it, so a response here means
+the charger actually replied. If it is offline or takes too long, you get a
+typed error rather than silence.
+
+Stop it again with the transaction id the session carries:
+
+```bash
+curl -X POST https://api.miav.com.br/charging-stations/1/commands/stop-charge \
+  -H 'Content-Type: application/json' \
+  -b cookies.txt \
+  -d '{ "transactionId": "12345" }'
+```
+
+## 6. Read what happened
+
+The charge is recorded as a session as it runs, so you can watch it live and
+review it afterwards:
+
+```bash
+curl -X POST https://api.miav.com.br/charging-sessions/search \
+  -H 'Content-Type: application/json' \
+  -b cookies.txt \
+  -d '{ "chargingStationId": 1, "perPage": 10 }'
+```
+
+For the aggregate view a dashboard needs, ask for a period instead and let the
+API do the arithmetic:
+
+```bash
+curl -X POST https://api.miav.com.br/dashboard/summary \
+  -H 'Content-Type: application/json' \
+  -b cookies.txt \
+  -d '{
+    "from": "2026-08-01T00:00:00.000Z",
+    "to": "2026-08-31T23:59:59.999Z",
+    "byStation": true
+  }'
+```
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="API conventions" icon="book" href="/conventions">
+    Errors, pagination, filtering and roles, explained once for every endpoint.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/healthcheck">
+    Every endpoint with its request and response schema.
+  </Card>
+</CardGroup>

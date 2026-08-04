@@ -1,0 +1,191 @@
+---
+title: "API conventions"
+description: "Authentication, roles, errors, pagination and filtering, explained once"
+---
+
+Every endpoint in the reference follows the same rules for authentication,
+errors and lists. They are collected here so the reference pages can stay about
+what each endpoint actually does.
+
+## Authentication
+
+Authentication is session based. You sign in once against `/auth/*` and the API
+sets a session cookie that every subsequent request carries.
+
+```bash
+curl -X POST https://api.miav.com.br/auth/sign-in/email \
+  -H 'Content-Type: application/json' \
+  -c cookies.txt \
+  -d '{ "email": "ada@example.com", "password": "a-long-password" }'
+```
+
+Sessions are cached for five minutes, so a burst of calls does not hit the
+database for every request. Sign-in attempts are rate limited to 60 per minute.
+
+Besides email and password, the auth layer also supports username sign-in, email
+one-time codes, and OAuth as a provider. The full set of auth endpoints has its
+own generated schema:
+
+```
+https://api.miav.com.br/auth/open-api/generate-schema
+```
+
+<Note>
+  Because authentication rides on a cookie, a browser client must send requests
+  with credentials included, and its origin must be on the API's allow list.
+</Note>
+
+## Roles and scoping
+
+Users carry one of four roles: `admin`, `merchant`, `merchant_manager` and
+`user`. The management endpoints documented here require **`merchant`**. A valid
+session without that role gets `403 FORBIDDEN`.
+
+Scoping is implicit and worth understanding: the API resolves your organization
+from your session and filters everything by it. You never pass an organization
+id, and you cannot read another organization's stations or sessions by guessing
+an id. A resource that exists but belongs elsewhere answers as not found.
+
+## Errors
+
+Errors always come back in the same shape, with a machine-readable `type` you
+can branch on.
+
+```json
+{
+  "status": 404,
+  "type": "CHARGING_STATION_NOT_FOUND",
+  "message": "Charging station not found"
+}
+```
+
+Some errors carry an `attributes` object with extra context. Failed OCPP
+commands use it to explain what the station said:
+
+```json
+{
+  "status": 502,
+  "type": "CHARGING_STATION_COMMAND_FAILED",
+  "message": "The charging station rejected the command",
+  "attributes": {
+    "reason": "CallError",
+    "code": "NotSupported",
+    "description": "Operation not supported by this firmware"
+  }
+}
+```
+
+Branch on `type`, never on `message`. Messages are written for humans and may be
+reworded; types are part of the contract.
+
+### Errors you will meet everywhere
+
+| Status | Type | What it means |
+| --- | --- | --- |
+| 400 | `VALIDATION_ERROR` | The body failed schema validation |
+| 401 | `UNAUTHORIZED` | No valid session |
+| 403 | `FORBIDDEN` | Session is valid but lacks the required role |
+| 404 | `ROUTE_NOT_FOUND` | No such route |
+| 500 | `INTERNAL_SERVER_ERROR` | Unexpected failure on our side |
+
+### Errors specific to commands
+
+Command endpoints talk to hardware over the network, so they fail in ways a
+normal CRUD endpoint does not. Handling these three well is most of what makes
+an integration feel solid.
+
+<AccordionGroup>
+  <Accordion title="The station is not connected">
+    `CHARGING_STATION_OFFLINE`. The station has no live OCPP session, so the
+    command cannot be delivered at all. Chargers drop and reconnect routinely,
+    so treat this as a normal condition, not an incident.
+  </Accordion>
+  <Accordion title="The station did not answer in time">
+    `CHARGING_STATION_COMMAND_TIMEOUT`. The frame was delivered but no reply
+    arrived within the window. The command may still have taken effect on the
+    charger, so prefer reading the resulting state over blindly retrying.
+  </Accordion>
+  <Accordion title="The station refused">
+    `CHARGING_STATION_COMMAND_FAILED`. The charger answered with an error.
+    `attributes` carries its reason, which is usually the fastest way to tell a
+    firmware limitation from a bad request.
+  </Accordion>
+</AccordionGroup>
+
+## Lists, pagination and sorting
+
+Every list endpoint is a `POST` to `/search`. It reads as unusual for a read
+operation, but it keeps rich filters in a JSON body instead of a long and
+ambiguous query string.
+
+Pagination and sorting are the same everywhere:
+
+```json
+{
+  "page": 1,
+  "perPage": 25,
+  "sort": { "field": "createdAt", "direction": "desc" }
+}
+```
+
+`perPage` defaults to 25 and is capped at 150. Filters sit alongside these keys
+at the top level of the body, not nested under a `filters` object.
+
+The response splits results from metadata, so a table can render its pager
+without a second call:
+
+```json
+{
+  "data": [],
+  "meta": {
+    "page": 1,
+    "perPage": 25,
+    "totalItems": 132,
+    "totalPages": 6,
+    "sort": { "field": "createdAt", "direction": "desc" },
+    "filters": {}
+  }
+}
+```
+
+### Filters by endpoint
+
+Each search accepts its own filters on top of the shared pagination keys:
+
+| Endpoint | Filters |
+| --- | --- |
+| `/charging-stations/search` | `keyword`, `groupId` |
+| `/charging-sessions/search` | `chargingStationId`, `groupId`, `status`, `startedAtFrom`, `startedAtTo` |
+| `/charging-station-groups/search` | `keyword` |
+| `/charging-station-logs/search` | `chargingStationId`, `groupId`, `eventType`, `eventTypes`, `excludeEventTypes`, `createdAtFrom`, `createdAtTo` |
+| `/organization-memberships/search` | none beyond pagination |
+
+Log search is the richest of them, and `excludeEventTypes` is the one worth
+knowing about: stations emit a great deal of `Heartbeat` and `MeterValues`
+traffic, and excluding those is usually the difference between a readable log
+and a wall of noise.
+
+## Dates and units
+
+Timestamps are ISO 8601 strings in UTC, both in and out. The dashboard endpoint
+accepts `utcOffsetMinutes` so a client can bucket a time series by local days
+without shifting the data itself.
+
+Energy is expressed in kWh. Stations report meter readings in Wh or kWh
+depending on the vendor, and the CSMS converts on the way in, so you never have
+to guess which unit a number is in.
+
+## The health endpoint
+
+One endpoint needs no authentication:
+
+```bash
+curl https://api.miav.com.br/
+```
+
+```json
+{ "ok": true }
+```
+
+It answers as long as the API process is up. It deliberately does not touch the
+database, so it reports liveness rather than full readiness.

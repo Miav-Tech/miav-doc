@@ -10,7 +10,7 @@
       "get": {
         "operationId": "getIndex",
         "summary": "Healthcheck",
-        "description": "Responde {\"ok\":true} quando a API está de pé; é o alvo do smoke check do deploy.",
+        "description": "Responds {\"ok\":true} while the API is up; it is the target of the deploy smoke check.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -39,8 +39,8 @@
         "tags": [
           "charging sessions"
         ],
-        "summary": "Buscar sessões",
-        "description": "Lista as sessões de carregamento da organização com filtros e paginação.",
+        "summary": "Search sessions",
+        "description": "Lists the charging sessions of the organization, with filters and pagination.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -435,8 +435,8 @@
         "tags": [
           "charging sessions"
         ],
-        "summary": "Detalhar sessão",
-        "description": "Devolve uma sessão de carregamento pelo id.",
+        "summary": "Get session",
+        "description": "Returns a single charging session by id.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -660,8 +660,8 @@
         "tags": [
           "charging station commands"
         ],
-        "summary": "Iniciar carregamento",
-        "description": "Envia RemoteStartTransaction para a estação e devolve a resposta dela.",
+        "summary": "Start charging",
+        "description": "Sends RemoteStartTransaction to the station and returns its response.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -987,8 +987,8 @@
         "tags": [
           "charging station commands"
         ],
-        "summary": "Parar carregamento",
-        "description": "Envia RemoteStopTransaction para a estação encerrar a transação informada.",
+        "summary": "Stop charging",
+        "description": "Sends RemoteStopTransaction so the station ends the given transaction.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -1288,8 +1288,8 @@
         "tags": [
           "charging station commands"
         ],
-        "summary": "Reiniciar estação",
-        "description": "Envia Reset, soft ou hard, para a estação.",
+        "summary": "Reset station",
+        "description": "Sends Reset, soft or hard, to the station.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -1595,8 +1595,8 @@
         "tags": [
           "charging station commands"
         ],
-        "summary": "Destravar conector",
-        "description": "Envia UnlockConnector para liberar o conector informado.",
+        "summary": "Unlock connector",
+        "description": "Sends UnlockConnector to release the given connector.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -1916,8 +1916,8 @@
         "tags": [
           "charging station commands"
         ],
-        "summary": "Alterar disponibilidade",
-        "description": "Envia ChangeAvailability para colocar o conector em operação ou tirá-lo dela.",
+        "summary": "Change availability",
+        "description": "Sends ChangeAvailability to put the connector into or out of service.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -2231,8 +2231,8 @@
         "tags": [
           "charging station commands"
         ],
-        "summary": "Solicitar mensagem",
-        "description": "Envia TriggerMessage pedindo que a estação emita a mensagem OCPP informada.",
+        "summary": "Trigger message",
+        "description": "Sends TriggerMessage asking the station to emit the given OCPP message.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -2555,8 +2555,8 @@
         "tags": [
           "charging station commands"
         ],
-        "summary": "Ler configuração",
-        "description": "Envia GetConfiguration e devolve as chaves de configuração da estação.",
+        "summary": "Read configuration",
+        "description": "Sends GetConfiguration and returns the station configuration keys.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -3104,8 +3104,8 @@
         "tags": [
           "charging station commands"
         ],
-        "summary": "Alterar configuração",
-        "description": "Envia ChangeConfiguration para gravar uma chave de configuração na estação.",
+        "summary": "Change configuration",
+        "description": "Sends ChangeConfiguration to write a configuration key on the station.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -3636,8 +3636,8 @@
         "tags": [
           "charging station commands"
         ],
-        "summary": "Limpar cache",
-        "description": "Envia ClearCache para a estação descartar o cache local de autorização.",
+        "summary": "Clear cache",
+        "description": "Sends ClearCache so the station drops its local authorization cache.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -3917,8 +3917,8 @@
         "tags": [
           "charging station commands"
         ],
-        "summary": "Enviar DataTransfer",
-        "description": "Envia DataTransfer com payload específico do fabricante para a estação.",
+        "summary": "Send DataTransfer",
+        "description": "Sends DataTransfer with a vendor-specific payload to the station.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -4226,8 +4226,8 @@
         "tags": [
           "charging station groups"
         ],
-        "summary": "Buscar grupos",
-        "description": "Lista os grupos de estações da organização com filtros e paginação.",
+        "summary": "Search groups",
+        "description": "Lists the station groups of the organization, with filters and pagination.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -4421,8 +4421,8 @@
         "tags": [
           "charging station groups"
         ],
-        "summary": "Criar grupo",
-        "description": "Cria um grupo de estações na organização.",
+        "summary": "Create group",
+        "description": "Creates a station group inside the organization.",
         "responses": {
           "201": {
             "description": "Successful response",
@@ -4554,8 +4554,8 @@
         "tags": [
           "charging station groups"
         ],
-        "summary": "Detalhar grupo",
-        "description": "Devolve um grupo de estações pelo id.",
+        "summary": "Get group",
+        "description": "Returns a single station group by id.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -4673,8 +4673,8 @@
         "tags": [
           "charging station groups"
         ],
-        "summary": "Atualizar grupo",
-        "description": "Atualiza os dados de um grupo de estações.",
+        "summary": "Update group",
+        "description": "Updates the name and description of a station group.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -4818,8 +4818,8 @@
         "tags": [
           "charging station groups"
         ],
-        "summary": "Excluir grupo",
-        "description": "Exclui o grupo; as estações dele ficam sem grupo, não são excluídas.",
+        "summary": "Delete group",
+        "description": "Deletes the group; its stations are left ungrouped rather than deleted.",
         "responses": {
           "204": {
             "description": "No content"
@@ -4881,8 +4881,8 @@
         "tags": [
           "charging station logs"
         ],
-        "summary": "Buscar logs OCPP",
-        "description": "Lista os eventos OCPP registrados pelas estações da organização, com filtros e paginação.",
+        "summary": "Search OCPP logs",
+        "description": "Lists the OCPP events recorded by the stations of the organization, with filters and pagination.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -5162,8 +5162,8 @@
         "tags": [
           "charging stations"
         ],
-        "summary": "Buscar estações",
-        "description": "Lista as estações da organização com filtros, paginação e o estado de conexão de cada uma.",
+        "summary": "Search stations",
+        "description": "Lists the stations of the organization, with filters, pagination and the live connection state of each one.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -5707,8 +5707,8 @@
         "tags": [
           "charging stations"
         ],
-        "summary": "Criar estação",
-        "description": "Cadastra uma estação e devolve as credenciais OCPP geradas para ela.",
+        "summary": "Create station",
+        "description": "Registers a station under the organization; the optional password becomes its OCPP Basic auth secret.",
         "responses": {
           "201": {
             "description": "Successful response",
@@ -6251,8 +6251,8 @@
         "tags": [
           "charging stations"
         ],
-        "summary": "Detalhar estação",
-        "description": "Devolve uma estação pelo id, com evses e conectores.",
+        "summary": "Get station",
+        "description": "Returns a single station by id, with its EVSEs and connectors.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -6717,8 +6717,8 @@
         "tags": [
           "charging stations"
         ],
-        "summary": "Atualizar estação",
-        "description": "Atualiza os dados cadastrais de uma estação.",
+        "summary": "Update station",
+        "description": "Updates the registration data of a station.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -7258,8 +7258,8 @@
         "tags": [
           "charging stations"
         ],
-        "summary": "Excluir estação",
-        "description": "Exclui a estação e derruba a conexão OCPP dela, se houver.",
+        "summary": "Delete station",
+        "description": "Deletes the station and everything recorded under it: EVSEs, connectors, sessions and logs.",
         "responses": {
           "204": {
             "description": "No content"
@@ -7321,8 +7321,8 @@
         "tags": [
           "dashboard"
         ],
-        "summary": "Resumo do dashboard",
-        "description": "Agrega estações, conectores, sessões e energia do período, em série temporal e, opcionalmente, por estação.",
+        "summary": "Dashboard summary",
+        "description": "Aggregates stations, connectors, sessions and energy over a period, as a time series and optionally broken down per station.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -7637,8 +7637,8 @@
         "tags": [
           "organization memberships"
         ],
-        "summary": "Buscar membros",
-        "description": "Lista os vínculos de usuários com a organização, com filtros e paginação.",
+        "summary": "Search members",
+        "description": "Lists the user memberships of the organization, with filters and pagination.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -7888,8 +7888,8 @@
         "tags": [
           "organization memberships"
         ],
-        "summary": "Adicionar membro",
-        "description": "Vincula um usuário à organização com o papel informado.",
+        "summary": "Add member",
+        "description": "Links an existing user to the organization with the given role.",
         "responses": {
           "201": {
             "description": "Successful response",
@@ -8126,8 +8126,8 @@
         "tags": [
           "organization memberships"
         ],
-        "summary": "Remover membro",
-        "description": "Remove o vínculo do usuário com a organização.",
+        "summary": "Remove member",
+        "description": "Removes a user membership from the organization.",
         "responses": {
           "204": {
             "description": "No content"
@@ -8227,8 +8227,8 @@
         "tags": [
           "organizations"
         ],
-        "summary": "Minha organização",
-        "description": "Devolve a organização do usuário autenticado.",
+        "summary": "Get my organization",
+        "description": "Returns the organization owned by the authenticated user.",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -8410,8 +8410,8 @@
         "tags": [
           "organizations"
         ],
-        "summary": "Criar organização",
-        "description": "Cria a organização do usuário autenticado; cada usuário tem no máximo uma.",
+        "summary": "Create organization",
+        "description": "Creates the organization for the authenticated user; each user owns at most one.",
         "responses": {
           "201": {
             "description": "Successful response",
@@ -8706,8 +8706,8 @@
         "tags": [
           "organizations"
         ],
-        "summary": "Atualizar organização",
-        "description": "Atualiza os dados cadastrais da organização do usuário.",
+        "summary": "Update organization",
+        "description": "Updates the registration data of the user organization.",
         "responses": {
           "200": {
             "description": "Successful response",

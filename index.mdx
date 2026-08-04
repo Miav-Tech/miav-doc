@@ -1,27 +1,97 @@
 ---
-title: "Introdução"
-description: "API do CSMS da Miav para gestão de estações de recarga"
+title: "Introduction"
+description: "The Miav CSMS API: manage a charging network, its stations and its sessions"
 ---
 
-A API do CSMS (Charging Station Management System) da Miav expõe a gestão da
-rede de recarga: estações e seus conectores, sessões de carregamento, grupos,
-organizações e o tráfego OCPP das estações, tudo sob o mesmo serviço.
+Miav's CSMS (Charging Station Management System) is the backend that runs a
+charging network. It keeps the registry of stations and their connectors, records
+every charging session, speaks OCPP with the hardware in the field, and exposes
+all of it through a single HTTP API.
 
-A URL base de produção é `https://api.miav.com.br`. As rotas REST e a conexão
-WebSocket OCPP das estações compartilham essa mesma origem.
+This reference covers that API. If you are integrating a dashboard, a mobile app
+or an internal tool, everything you need is here.
 
-<Card title="API Reference" icon="code">
-  Todos os endpoints estão na aba **API Reference** acima, com schemas de
-  entrada e resposta gerados a partir do OpenAPI do serviço.
-</Card>
+```
+https://api.miav.com.br
+```
 
-## Autenticação
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Sign in, create an organization, register a station and send it a command.
+  </Card>
+  <Card title="API conventions" icon="book" href="/conventions">
+    Authentication, error shape, pagination and filtering, in one place.
+  </Card>
+</CardGroup>
 
-As rotas de painel exigem sessão autenticada via `/auth/*`. As estações se
-autenticam na conexão OCPP com as credenciais cadastradas para cada
-identificador de estação.
+## What the API covers
 
-## Ambientes
+**Stations and hardware.** A station is the physical unit in the field. Each one
+holds EVSEs, and each EVSE holds connectors, which are what a driver actually
+plugs into. The API exposes the whole tree, including each connector's live
+status as the station last reported it.
 
-O spec publicado aqui é gerado do código a cada mudança na branch principal do
-serviço, então a referência reflete o contrato que está em produção.
+**Sessions.** Every charge is recorded as a session, from the moment the station
+opens a transaction to the moment it closes, along with the meter readings and
+the energy consumed.
+
+**Commands.** Ten OCPP operations are exposed as plain HTTP endpoints: start and
+stop a charge remotely, reset the station, unlock a connector, change
+availability, read and write configuration keys, clear the authorization cache,
+trigger a message, and send vendor-specific payloads.
+
+**Groups and organizations.** Stations can be grouped for reporting and access
+control. Everything is scoped to an organization, and users are linked to it
+through memberships.
+
+**Dashboard aggregates.** A single endpoint returns counts, a time series and an
+optional per-station breakdown for any period, so a dashboard does not have to
+aggregate client-side.
+
+## One origin, two protocols
+
+The same host serves both halves of the system, which is worth knowing before
+you start:
+
+<Steps>
+  <Step title="REST, for your applications">
+    Everything documented in the API Reference is plain JSON over HTTPS at
+    `https://api.miav.com.br`.
+  </Step>
+  <Step title="OCPP WebSocket, for the hardware">
+    Stations connect to `wss://api.miav.com.br/ocpp/{stationIdentifier}` and
+    speak OCPP 1.6 or 2.0.1. You do not call this yourself; the charger does.
+  </Step>
+</Steps>
+
+Traffic arriving from stations is validated, turned into typed events and
+persisted, which is why a session that a station opened over OCPP shows up in
+the REST API moments later.
+
+## How a charge flows through the system
+
+Understanding this order makes the rest of the API obvious.
+
+The station opens a WebSocket and authenticates. It sends `BootNotification`,
+then heartbeats. When a driver plugs in, the station reports the connector's new
+status and opens a transaction, which the CSMS records as a session. While the
+charge runs, the station pushes meter values and the session's consumed energy is
+updated. When it ends, the station closes the transaction and the session is
+finalised with its total.
+
+Your application never has to touch OCPP for any of that. You read sessions and
+stations over REST, and when you want to act on the hardware, you post to one of
+the command endpoints and the CSMS translates it into the right OCPP message.
+
+<Note>
+  Energy is reported in kWh in the API. Stations report meter readings in Wh or
+  kWh depending on the vendor, and the CSMS normalises them on the way in.
+</Note>
+
+## Before you call anything
+
+Every endpoint in this reference requires an authenticated session, and the
+management endpoints additionally require the `merchant` role. Head to the
+[Quickstart](/quickstart) to get a session, or to
+[API conventions](/conventions) for the details of authentication, errors and
+pagination.
