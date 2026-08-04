@@ -1,0 +1,12 @@
+/*
+ * O tema linden desenha um scrollbar customizado (Base UI ScrollArea) na borda
+ * direita do sidebar, e nas páginas de API o texto da coluna de conteúdo
+ * começa alguns pixels aquém dessa borda. Quando o polegar aparece, no hover
+ * ou durante o scroll, ele pinta por cima da primeira letra de cada linha.
+ *
+ * Esconder só esse polegar resolve: a rolagem do sidebar continua normal por
+ * trackpad e roda, e nenhum texto fica coberto.
+ */
+#sidebar [data-component-part='scroll-area-scrollbar'] {
+  display: none !important;
+}
