@@ -10,3 +10,19 @@
 #sidebar [data-component-part='scroll-area-scrollbar'] {
   display: none !important;
 }
+
+/*
+ * Nas páginas de API cujo path é longo, como os comandos de estação, os
+ * exemplos de código e a barra do playground têm linhas inquebráveis mais
+ * largas que a coluna. Os filhos da linha `flex flex-row-reverse` do tema não
+ * têm min-width, então não podem encolher abaixo do conteúdo mínimo, e em
+ * row-reverse o excesso vaza para a ESQUERDA, empurrando a coluna de texto
+ * para debaixo do sidebar. É por isso que só algumas páginas desalinham.
+ *
+ * min-width: 0 devolve aos filhos o direito de encolher; os blocos de código
+ * passam a rolar dentro de si mesmos, como já fazem quando cabem.
+ */
+#content-area,
+#content-side-layout {
+  min-width: 0;
+}
